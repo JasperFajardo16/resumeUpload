@@ -26,17 +26,15 @@ let uploads = {};
 
 app.post('/upload', (req, res, next) => {
   let fileId = req.headers['x-file-id'];
-  let startByte = parseInt(req.headers['x-start-byte'], 10);
-  let name = req;
+  let name = req.headers['name'];
   let fileSize = parseInt(req.headers['size'], 10);
+  let file = req.params
+  console.log("file body: ", file)
   console.log('file Size', fileSize, fileId, startByte);
   if (uploads[fileId] && fileSize == uploads[fileId].bytesReceived) {
     res.end();
     return;
   }
-
-  console.log("=====", uploads)
-
 
   if (!fileId) {
     res.writeHead(400, "No file id");
@@ -51,28 +49,17 @@ app.post('/upload', (req, res, next) => {
   let fileStream;
 
   console.log("****", startByte)
-  if (!startByte) {
-    upload.bytesReceived = 0;
-    let name = req.headers['name'];
-    fileStream = fs.createWriteStream(`../name/${name}`, {
-      flags: 'w'
-    });
-  } else {
-    if (upload.bytesReceived != startByte) {
-      res.writeHead(400, "Wrong start byte");
-      res.end(upload.bytesReceived);
-      return;
-    }
-    // append to existing file
-    fileStream = fs.createWriteStream(`../name/${name}`, {
-      flags: 'a'
-    });
-  }
+  console.log("====", upload)
+
+  fileStream = fs.createWriteStream(`../name/${name}`, {
+    flags: 'w'
+  });
 
   req.on('data', function (data) {
     //console.log("bytes received", upload.bytesReceived);
     upload.bytesReceived += data.length;
   });
+
 
   req.pipe(fileStream);
 
